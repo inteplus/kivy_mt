@@ -8,13 +8,14 @@ setup(name='kivy_mt',
       author=["Minh-Tri Pham"],
       #scripts=['scripts/visionml_viewer.py'],
       packages=find_packages(),
-      #package_data={
-      #  'muv1.viewer': ['data/*'],
-      #},
-      #include_package_data=True,
+      package_data={
+        'kivy_mt': ['data/*'],
+      },
+      include_package_data=True,
       zip_safe=False,
       install_requires=[
         'kivy',
         'kivy-garden',
+        'pygame', # for kivy
       ]
     )
