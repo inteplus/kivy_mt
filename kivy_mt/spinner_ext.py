@@ -168,6 +168,8 @@ class SpinnerExt(Button):
                 min_item_height = item.height
             item.bind(on_release=lambda option: dp.select(option.text))
             dp.add_widget(item)
+        if min_item_height is None:
+            min_item_height = 100
 
         # editable item
         item = TextInput(text='', multiline=False, size_hint_y=None)
@@ -192,3 +194,7 @@ class SpinnerExt(Button):
         else:
             if self._dropdown.attach_to:
                 self._dropdown.dismiss()
+
+
+
+Factory.register("SpinnerExt", cls=SpinnerExt)

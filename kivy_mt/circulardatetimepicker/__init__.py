@@ -563,6 +563,8 @@ class CircularTimePicker(BoxLayout):
     ampm_text = AliasProperty(_get_ampm_text, None, bind=("hours", "ampm_format", "_am"))
 
     def __init__(self, **kw):
+        if not 'color' in kw:
+            kw['color'] = (1,1,1,1) # must be a 4-tuple or text_sdl2 will generate an index out of bound error because it's expecting the alpha channel
         super(CircularTimePicker, self).__init__(**kw)
         if self.hours >= 12:
             self._am = False
