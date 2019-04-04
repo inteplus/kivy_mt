@@ -746,7 +746,7 @@ class CircularTimePicker(TextInput):
     def init_ui(self):
 
         if not self.text:
-            self.text = datetime.now().strftime(self.format)
+            self.text = datetime.datetime.now().strftime(self.format)
 
         # CircularTimeWidget
         self.ctw = CircularTimeWidget()
