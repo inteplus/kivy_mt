@@ -735,7 +735,7 @@ class CircularTimePicker(TextInput):
     pHint_y = NumericProperty(0.9)
     pHint = ReferenceListProperty(pHint_x ,pHint_y)
 
-    format = StringPropertt("%H:%M:%S")
+    format = StringProperty("%H:%M:%S")
 
     def __init__(self, touch_switch=False, *args, **kwargs):
         super(CircularTimePicker, self).__init__(*args, **kwargs)
