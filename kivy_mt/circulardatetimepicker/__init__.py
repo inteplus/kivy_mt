@@ -97,7 +97,7 @@ Builder.load_string("""
     AnchorLayout:
         anchor_x: "center"
         anchor_y: "center"
-        size_hint_y: 1./3
+        size_hint_y: 1./4
 
         GridLayout:
             cols: 2
@@ -130,7 +130,7 @@ Builder.load_string("""
 
     FloatLayout:
         id: picker_container
-        #size_hint_y: 2./3
+        #size_hint_y: 3./4
         _bound: {}
 """)
 
@@ -411,6 +411,24 @@ class CircularNumberPicker(CircularLayout):
 
         return min(int(angle / quota) + self.min, self.max-1)
 
+class CircularSecondPicker(CircularNumberPicker):
+    """:class:`CircularNumberPicker` implementation for seconds.
+    """
+
+    def __init__(self, **kw):
+        super(CircularSecondPicker, self).__init__(**kw)
+        self.min = 0
+        self.max = 60
+        self.multiples_of = 5
+        self.number_format_string = "{:02d}"
+        self.direction = "cw"
+        self.bind(shown_items=self._update_start_angle)
+        Clock.schedule_once(self._update_start_angle)
+        Clock.schedule_once(self.on_selected)
+
+    def _update_start_angle(self, *a):
+        self.start_angle = -(360. / self.shown_items / 2) - 90
+
 class CircularMinutePicker(CircularNumberPicker):
     """:class:`CircularNumberPicker` implementation for minutes.
     """
@@ -474,20 +492,27 @@ class CircularTimePicker(BoxLayout):
     defaults to 0.
     """
 
-    time_list = ReferenceListProperty(hours, minutes)
-    """Packs :attr:`hours` and :attr:`minutes` in a list for convenience.
+    seconds = NumericProperty(0)
+    """The seconds.
+
+    :attr:`seconds` is a :class:`~kivy.properties.NumericProperty` and
+    defaults to 0.
+    """
+
+    time_list = ReferenceListProperty(hours, minutes, seconds)
+    """Packs :attr:`hours` and :attr:`minutes` and :attr:`seconds` in a list for convenience.
 
     :attr:`time_list` is a :class:`~kivy.properties.ReferenceListProperty`.
     """
 
     # military = BooleanProperty(False)
-    time_format = StringProperty("[color={hours_color}][ref=hours]{hours}[/ref][/color]:[color={minutes_color}][ref=minutes]{minutes:02d}[/ref][/color]")
+    time_format = StringProperty("[color={hours_color}][ref=hours]{hours}[/ref][/color]:[color={minutes_color}][ref=minutes]{minutes:02d}[/ref][/color]:[color={seconds_color}][ref=seconds]{seconds:02d}[/ref][/color]")
     """String that will be formatted with the time and shown in the time label.
     Can be anything supported by :meth:`str.format`. Make sure you don't
     remove the refs. See the default for the arguments passed to format.
 
     :attr:`time_format` is a :class:`~kivy.properties.StringProperty` and
-    defaults to "[color={hours_color}][ref=hours]{hours}[/ref][/color]:[color={minutes_color}][ref=minutes]{minutes:02d}[/ref][/color]".
+    defaults to "[color={hours_color}][ref=hours]{hours}[/ref][/color]:[color={minutes_color}][ref=minutes]{minutes:02d}[/ref][/color]:[color={seconds_color}][ref=seconds]{seconds:02d}[/ref][/color]".
     """
 
     ampm_format = StringProperty("[color={am_color}][ref=am]AM[/ref][/color]\n[color={pm_color}][ref=pm]PM[/ref][/color]")
@@ -499,8 +524,8 @@ class CircularTimePicker(BoxLayout):
     defaults to "[color={am_color}][ref=am]AM[/ref][/color]\n[color={pm_color}][ref=pm]PM[/ref][/color]".
     """
 
-    picker = OptionProperty("hours", options=("minutes", "hours"))
-    """Currently shown time picker. Can be one of "minutes", "hours".
+    picker = OptionProperty("hours", options=("hours", "minutes", "seconds"))
+    """Currently shown time picker. Can be one of "hours", "minutes", "seconds".
 
     :attr:`picker` is a :class:`~kivy.properties.OptionProperty` and
     defaults to "hours".
@@ -530,31 +555,36 @@ class CircularTimePicker(BoxLayout):
     _am = BooleanProperty(True)
     _h_picker = ObjectProperty(None)
     _m_picker = ObjectProperty(None)
+    _s_picker = ObjectProperty(None)
     _bound = DictProperty({})
 
     def _get_time(self):
         return datetime.time(*self.time_list)
     def _set_time(self, dt):
-        self.time_list = [dt.hour, dt.minute]
+        self.time_list = [dt.hour, dt.minute, dt.second]
     time = AliasProperty(_get_time, _set_time, bind=("time_list",))
     """Selected time as a datetime.time object.
 
     :attr:`time` is an :class:`~kivy.properties.AliasProperty`.
     """
 
-    def _get_picker(self):
-        if self.picker == "hours":
+    def _get_picker_obj(self, picker):
+        if picker == "hours":
             return self._h_picker
-        return self._m_picker
-    _picker = AliasProperty(_get_picker, None)
+        if picker == "minutes":
+            return self._m_picker
+        return self._s_picker
+    _picker = AliasProperty(lambda x: x._get_picker_obj(x.picker), None)
 
     def _get_time_text(self):
         hc = rgb_to_hex(*self.selector_color) if self.picker == "hours" else rgb_to_hex(*self.color)
         mc = rgb_to_hex(*self.selector_color) if self.picker == "minutes" else rgb_to_hex(*self.color)
+        sc = rgb_to_hex(*self.selector_color) if self.picker == "seconds" else rgb_to_hex(*self.color)
         h = self.hours == 0 and 12 or self.hours <= 12 and self.hours or self.hours - 12
         m = self.minutes
-        return self.time_format.format(hours_color=hc, minutes_color=mc, hours=h, minutes=m)
-    time_text = AliasProperty(_get_time_text, None, bind=("hours", "minutes", "time_format", "picker"))
+        s = self.seconds
+        return self.time_format.format(hours_color=hc, minutes_color=mc, seconds_color=sc, hours=h, minutes=m, seconds=s)
+    time_text = AliasProperty(_get_time_text, None, bind=("hours", "minutes", "seconds", "time_format", "picker"))
 
     def _get_ampm_text(self):
         amc = rgb_to_hex(*self.selector_color) if self._am else rgb_to_hex(*self.color)
@@ -569,8 +599,10 @@ class CircularTimePicker(BoxLayout):
         if self.hours >= 12:
             self._am = False
         self.bind(time_list=self.on_time_list, picker=self._switch_picker, _am=self.on_ampm)
+        self.prev_picker = "seconds"
         self._h_picker = CircularHourPicker()
         self._m_picker = CircularMinutePicker()
+        self._s_picker = CircularSecondPicker()
         Clock.schedule_once(self.on_selected)
         Clock.schedule_once(self.on_time_list)
         Clock.schedule_once(self._init_later)
@@ -586,6 +618,8 @@ class CircularTimePicker(BoxLayout):
             self.picker = "hours"
         elif ref == "minutes":
             self.picker = "minutes"
+        elif ref == "seconds":
+            self.picker = "seconds"
         elif ref == "am":
             self._am = True
         elif ref == "pm":
@@ -603,6 +637,8 @@ class CircularTimePicker(BoxLayout):
             self.hours = hours
         elif self.picker == "minutes":
             self.minutes = self._picker.selected
+        elif self.picker == "seconds":
+            self.seconds = self._picker.selected
 
     def on_time_list(self, *a):
         #print "TIME", self.time
@@ -612,6 +648,8 @@ class CircularTimePicker(BoxLayout):
             self._picker.selected = self.hours == 0 and 12 or self._am and self.hours or self.hours - 12
         elif self.picker == "minutes":
             self._picker.selected = self.minutes
+        elif self.picker == "seconds":
+            self._picker.selected = self.seconds
 
     def on_ampm(self, *a):
         if self._am:
@@ -629,12 +667,9 @@ class CircularTimePicker(BoxLayout):
         except (AttributeError, NameError):
             Clock.schedule_once(lambda *a: self._switch_picker(noanim=noanim))
 
-        if self.picker == "hours":
-            picker = self._h_picker
-            prevpicker = self._m_picker
-        elif self.picker == "minutes":
-            picker = self._m_picker
-            prevpicker = self._h_picker
+        prevpicker = self._get_picker_obj(self.prev_picker)
+        self.prev_picker = self.picker
+        picker = self._picker
 
         if len(self._bound) > 0:
             prevpicker.unbind(selected=self.on_selected)
@@ -644,7 +679,7 @@ class CircularTimePicker(BoxLayout):
                        "color":          picker.setter("color"),
                        "selector_alpha": picker.setter("selector_alpha")}
         self.bind(**self._bound)
-        
+
         if len(container._bound) > 0:
             container.unbind(**container._bound)
         container._bound = {"size": picker.setter("size"),
