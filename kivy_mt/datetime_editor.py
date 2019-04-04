@@ -41,6 +41,7 @@ from datetime import datetime
 from kivy.lang import Builder
 from kivy.factory import Factory
 from kivy.properties import ListProperty, ReferenceListProperty, ObjectProperty, BooleanProperty, StringProperty, NumericProperty
+from kivy.core.window import Window
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
@@ -58,6 +59,8 @@ Builder.load_string("""
 #:import CircularTimeWidget  kivy_mt.circulardatetimepicker.CircularTimeWidget
 
 <DatetimeEditorPopup@Popup>:
+    title: "Date and time"
+
     BoxLayout:
         orientation: "vertical"
 
@@ -102,10 +105,11 @@ class DatetimeEditorPopup(Popup):
     dt = ObjectProperty(None, allownone=True)
     format = StringProperty("%Y-%m-%d %H:%M:%S")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, dt=None, *args, **kwargs):
         super(DatetimeEditorPopup, self).__init__(*args, **kwargs)
 
-        self.old_dt = self.dt
+        self.dt = dt
+        self.old_dt = dt
 
         if not self.dt:
             self.dt = datetime.now()
@@ -156,8 +160,7 @@ class DatetimeEditorPopup(Popup):
 
 
 class DatetimeEditor(TextInput):
-    """A TextInput but when focused, shows popup with a CalendarWidget and
-    a CircularTimeWidget and a text input to enter date and time. You can
+    """A TextInput but when focused, shows the DatetimeEditorPopup. You can
     define the popup dimensions using  pHint_x, pHint_y, and the pHint lists. 
     The `format` property formats the date and time to string using strftime() 
     and strptime(). The `dt` property can be used to initialise date and time.
@@ -182,29 +185,39 @@ class DatetimeEditor(TextInput):
     pHint_x = NumericProperty(0.8)
     pHint_y = NumericProperty(0.6)
     pHint = ReferenceListProperty(pHint_x ,pHint_y)
+    '''Popup size hint that can be edited by the user.
+
+    :attr:`pHint` is a :class:`~kivy.properties.ObjectProperty` and defaults to (0.8, 0.6).
+    '''
+
 
     format = StringProperty("%Y-%m-%d %H:%M:%S")
+    '''Datetime format to be used by strftime() and strptime().
+
+    :attr:`format` is a :class:`~kivy.properties.StringPoperty` and defaults to "%Y-%m-%d %H:%M:%S".
+    '''
 
     # ----- initialisation -----
 
     def __init__(self, *args, **kwargs):
-        super(CircularTimePicker, self).__init__(*args, **kwargs)
+        super(DatetimeEditor, self).__init__(*args, **kwargs)
 
-        self.init_ui()
-
-    def init_ui(self):
+        self.bind(focus=self.show_popup, dt=self.on_dt_changed)
 
         if not self.dt:
-            self.dt = datetime.datetime.now()
-
-        # CircularTimeWidget
-        self.ctw = CircularTimeWidget()
+            self.dt = datetime.now()
 
         # Popup
-        self.popup = Popup(content=self.ctw, on_dismiss=self.update_value, title="")
-        self.ctw.parent_popup = self.popup
+        self.popup = DatetimeEditorPopup(on_dismiss=self.update_value, dt=self.dt)
+        self.popup.format = self.format
 
-        self.bind(focus=self.show_popup)
+    def on_dt_changed(self, inst, val):
+        '''Handles the case where the dt has been changed.'''
+        text = val.strftime(self.format)
+        if text != self.text:
+            self.text = text
+        if hasattr(self, 'popup') and self.dt != self.popup.dt:
+            self.popup.dt = self.dt
 
     def show_popup(self, isnt, val):
         """
@@ -216,13 +229,14 @@ class DatetimeEditor(TextInput):
             # Automatically dismiss the keyboard
             # that results from the textInput
             Window.release_all_keyboards()
-            self.ctw.time = datetime.datetime.strptime(self.text, self.format)
+            if self.dt != self.popup.dt:
+                self.popup.dt = self.dt
             self.popup.open()
 
     def update_value(self, inst):
         """ Update textinput value on popup close """
 
-        self.text = self.ctw.time.strftime(self.format)
+        self.dt = self.popup.dt
         self.focus = False
 
 
