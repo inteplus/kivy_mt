@@ -53,6 +53,7 @@ from kivy_mt.circularlayout import CircularLayout
 # from kivy.garden.recycleview import RecycleView
 from kivy.graphics import Line, Color, Ellipse
 from kivy.lang import Builder
+from kivy.factory import Factory
 from kivy.metrics import dp
 from kivy.properties import NumericProperty, BoundedNumericProperty,\
                             ObjectProperty, StringProperty, DictProperty,\
@@ -775,6 +776,10 @@ class CircularTimePicker(TextInput):
 
         self.text = self.ctw.time.strftime(self.format)
         self.focus = False
+
+
+Factory.register("CircularTimeWidget", CircularTimeWidget)
+Factory.register("CircularTimePicker", CircularTimePicker)
 
 
 if __name__ == "__main__":

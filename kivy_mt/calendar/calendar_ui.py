@@ -19,7 +19,8 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label
 from kivy.core.window import Window
-from kivy.properties import NumericProperty, ReferenceListProperty, StringProperty
+from kivy.properties import NumericProperty, ListProperty, ReferenceListProperty, StringProperty
+from kivy.factory import Factory
 
 from kivy_mt.calendar import calendar_data as cal_data
 from datetime import datetime
@@ -125,12 +126,19 @@ class DatePicker(TextInput):
 
 class CalendarWidget(RelativeLayout):
     """ Basic calendar widget """
+
+    active_date = ListProperty([])
+    '''Date [year, month, day] that can be set by the user. Must be [] or [year, month, day].
+
+    :attr:`active_date` is a :class:`~kivy.properties.ListProperty` and defaults to [].
+    '''
     
-    def __init__(self, as_popup=False, touch_switch=False, active_date=None, *args, **kwargs):
+    def __init__(self, as_popup=False, touch_switch=False, *args, **kwargs):
         super(CalendarWidget, self).__init__(*args, **kwargs)
         self.as_popup = as_popup
         self.touch_switch = touch_switch
-        self.active_date = active_date or cal_data.today_date_list()
+        if not self.active_date:
+            self.active_date = cal_data.today_date_list()
 
         self.prepare_data()     
         self.init_ui()
@@ -317,3 +325,6 @@ class DayNumButton(DayButton):
 class DayNumWeekendButton(DayButton):
     pass
 
+
+Factory.register("DatePicker", DatePicker)
+Factory.register("CalendarWidget", CalendarWidget)
