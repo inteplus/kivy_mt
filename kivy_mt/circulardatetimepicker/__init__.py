@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Circular Date & Time Picker for Kivy
-====================================
+Circular Time Picker for Kivy
+=============================
 
-(currently only time, date coming soon)
+(currently only time, date in another module)
 
 Based on [CircularLayout](https://github.com/kivy-garden/garden.circularlayout).
 The main aim is to provide a date and time selector similar to the
@@ -17,13 +17,13 @@ Simple usage
 Import the widget with
 
 ```python
-from kivy_extra.circulardatetimepicker import CircularTimePicker
+from kivy_mt.circulardatetimepicker import CircularTimeWidget
 ```
 
 then use it! That's it!
 
 ```python
-c = CircularTimePicker()
+c = CircularTimeWidget()
 c.bind(time=self.set_time)
 root.add_widget(c)
 ```
@@ -35,7 +35,7 @@ in Kv language:
     BoxLayout:
         orientation: "vertical"
 
-        CircularTimePicker
+        CircularTimeWidget
 
         Button:
             text: "Dismiss"
@@ -44,6 +44,8 @@ in Kv language:
             on_release: root.dismiss()
 ```
 """
+
+__all__ = ('CircularTimeWidget', 'CircularTimePicker')
 
 from kivy.animation import Animation
 from kivy.clock import Clock
@@ -57,6 +59,9 @@ from kivy.properties import NumericProperty, BoundedNumericProperty,\
                             ListProperty, OptionProperty, BooleanProperty,\
                             ReferenceListProperty, AliasProperty
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
+from kivy.core.window import Window
 from kivy.uix.label import Label
 
 from math import atan, pi, radians, sin, cos
@@ -90,7 +95,7 @@ Builder.load_string("""
     canvas.after:
         PopMatrix            
 
-<CircularTimePicker>:
+<CircularTimeWidget>:
     orientation: "vertical"
     spacing: "20dp"
 
@@ -226,7 +231,7 @@ class CircularNumberPicker(CircularLayout):
     """
 
     scale = NumericProperty(1)
-    """Canvas scale factor. Used in :class:`CircularTimePicker` transitions.
+    """Canvas scale factor. Used in :class:`CircularTimeWidget` transitions.
 
     :attr:`scale` is a :class:`~kivy.properties.NumericProperty` and
     defaults to 1.
@@ -470,7 +475,7 @@ class CircularHourPicker(CircularNumberPicker):
     def _update_start_angle(self, *a):
         self.start_angle = (360. / self.shown_items / 2) - 90
 
-class CircularTimePicker(BoxLayout):
+class CircularTimeWidget(BoxLayout):
     """Widget that makes use of :class:`CircularHourPicker` and
     :class:`CircularMinutePicker` to create a user-friendly, animated
     time picker like the one seen on Android.
@@ -595,7 +600,7 @@ class CircularTimePicker(BoxLayout):
     def __init__(self, **kw):
         if not 'color' in kw:
             kw['color'] = (1,1,1,1) # must be a 4-tuple or text_sdl2 will generate an index out of bound error because it's expecting the alpha channel
-        super(CircularTimePicker, self).__init__(**kw)
+        super(CircularTimeWidget, self).__init__(**kw)
         if self.hours >= 12:
             self._am = False
         self.bind(time_list=self.on_time_list, picker=self._switch_picker, _am=self.on_ampm)
@@ -712,15 +717,64 @@ class CircularTimePicker(BoxLayout):
             anim = Animation(scale=1, d=.5, t="out_back") & Animation(opacity=1, d=.5, t="out_cubic")
             Clock.schedule_once(lambda *a: anim.start(picker), .3)
 
-# class CalendarMonthView(GridLayout):
-#     month = BoundedNumericProperty(datetime.date.today().month, min=1, max=12)
-#     year = BoundedNumericProperty(datetime.date.today().year, min=1, max=9999)
-#     first_day_of_week = BoundedNumericProperty(0, min=0, max=6)
+###########################################################
+
+class CircularTimePicker(TextInput):
+    """
+    Circular time picker is a textinput, if it focused shows popup with a
+    CircularTimeWidget which allows you to define the popup dimensions using
+    pHint_x, pHint_y, and the pHint lists, for example in kv:
+    CircularTimePicker:
+        pHint: 0.7,0.4
+    would result in a size_hint of 0.7,0.4 being used to create the popup
+    """
+    pHint_x = NumericProperty(0.0)
+    pHint_y = NumericProperty(0.0)
+    pHint = ReferenceListProperty(pHint_x ,pHint_y)
+
+    def __init__(self, touch_switch=False, *args, **kwargs):
+        super(CircularTimePicker, self).__init__(*args, **kwargs)
+
+        self.touch_switch = touch_switch
+        self.init_ui()
+
+    def init_ui(self):
+
+        if not self.text:
+            self.text = "00:00:00"
+
+        # CircularTimeWidget
+        self.ctw = CircularTimeWidget()
+
+        # Popup
+        self.popup = Popup(content=self.ctw, on_dismiss=self.update_value, title="")
+        self.ctw.parent_popup = self.popup
+
+        self.bind(focus=self.show_popup)
+
+    def show_popup(self, isnt, val):
+        """
+        Open popup if textinput focused,
+        and regardless update the popup size_hint
+        """
+        self.popup.size_hint=self.pHint
+        if val:
+            # Automatically dismiss the keyboard
+            # that results from the textInput
+            Window.release_all_keyboards()
+            self.ctw.time = datetime.datetime.strptime(self.text, "%H:%M:%S")
+            self.popup.open()
+
+    def update_value(self, inst):
+        """ Update textinput value on popup close """
+
+        self.text = self.ctw.time.strftime("%H:%M:%S")
+        self.focus = False
 
 
 if __name__ == "__main__":
     from kivy.base import runTouchApp
 
-    c = CircularTimePicker()
+    c = CircularTimePicker(text="12:23:34")
     runTouchApp(c)
 
