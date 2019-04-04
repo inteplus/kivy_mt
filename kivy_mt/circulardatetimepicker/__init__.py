@@ -723,14 +723,19 @@ class CircularTimePicker(TextInput):
     """
     Circular time picker is a textinput, if it focused shows popup with a
     CircularTimeWidget which allows you to define the popup dimensions using
-    pHint_x, pHint_y, and the pHint lists, for example in kv:
+    pHint_x, pHint_y, and the pHint lists. The `format` property formats the
+    time to string using strftime() and strptime().
+    For example in kv:
     CircularTimePicker:
         pHint: 0.7,0.4
+        format: "%H:%M:%S"
     would result in a size_hint of 0.7,0.4 being used to create the popup
     """
-    pHint_x = NumericProperty(0.0)
-    pHint_y = NumericProperty(0.0)
+    pHint_x = NumericProperty(0.9)
+    pHint_y = NumericProperty(0.9)
     pHint = ReferenceListProperty(pHint_x ,pHint_y)
+
+    format = StringPropertt("%H:%M:%S")
 
     def __init__(self, touch_switch=False, *args, **kwargs):
         super(CircularTimePicker, self).__init__(*args, **kwargs)
@@ -741,7 +746,7 @@ class CircularTimePicker(TextInput):
     def init_ui(self):
 
         if not self.text:
-            self.text = "00:00:00"
+            self.text = datetime.now().strftime(self.format)
 
         # CircularTimeWidget
         self.ctw = CircularTimeWidget()
@@ -762,13 +767,13 @@ class CircularTimePicker(TextInput):
             # Automatically dismiss the keyboard
             # that results from the textInput
             Window.release_all_keyboards()
-            self.ctw.time = datetime.datetime.strptime(self.text, "%H:%M:%S")
+            self.ctw.time = datetime.datetime.strptime(self.text, self.format)
             self.popup.open()
 
     def update_value(self, inst):
         """ Update textinput value on popup close """
 
-        self.text = self.ctw.time.strftime("%H:%M:%S")
+        self.text = self.ctw.time.strftime(self.format)
         self.focus = False
 
 

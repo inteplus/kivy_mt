@@ -19,9 +19,10 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.textinput import TextInput
 from kivy.uix.label import Label
 from kivy.core.window import Window
-from kivy.properties import NumericProperty, ReferenceListProperty
+from kivy.properties import NumericProperty, ReferenceListProperty, StringProperty
 
 from kivy_mt.calendar import calendar_data as cal_data
+from datetime import datetime
 ###########################################################
 Builder.load_string("""
 <ArrowButton>:
@@ -64,14 +65,21 @@ class DatePicker(TextInput):
     """ 
     Date picker is a textinput, if it focused shows popup with calendar
     which allows you to define the popup dimensions using pHint_x, pHint_y, 
-    and the pHint lists, for example in kv:
+    and the pHint lists. The `format` property defines how the date is
+    formatted in string using strftime() and strptime().
+    
+    For example in kv:
     DatePicker:
-        pHint: 0.7,0.4 
+        pHint: 0.7,0.4
+        text: "2017-03-23"
+        format: "%Y-%m-%s"
     would result in a size_hint of 0.7,0.4 being used to create the popup
     """
-    pHint_x = NumericProperty(0.0)
-    pHint_y = NumericProperty(0.0)
+    pHint_x = NumericProperty(0.9)
+    pHint_y = NumericProperty(0.9)
     pHint = ReferenceListProperty(pHint_x ,pHint_y)
+
+    format = StringProperty("%Y/%m/%d")
 
     def __init__(self, touch_switch=False, *args, **kwargs):
         super(DatePicker, self).__init__(*args, **kwargs)
@@ -80,13 +88,17 @@ class DatePicker(TextInput):
         self.init_ui() 
         
     def init_ui(self):
-        
-        self.text = cal_data.today_date()
+
+        if not self.text:
+            self.text = datetime.now().strftime(self.format)
+
         # Calendar
-        self.cal = CalendarWidget(as_popup=True, 
-                                  touch_switch=self.touch_switch)
+        dt = datetime.strptime(self.text, self.format)
+        self.cal = CalendarWidget(as_popup=True,
+                                  touch_switch=self.touch_switch,
+                                  active_date=[dt.day, dt.month, dt.year])
         # Popup
-        self.popup = Popup(content=self.cal, on_dismiss=self.update_value, 
+        self.popup = Popup(content=self.cal, on_dismiss=self.update_value,
                            title="")
         self.cal.parent_popup = self.popup
         
@@ -106,18 +118,20 @@ class DatePicker(TextInput):
         
     def update_value(self, inst):
         """ Update textinput value on popup close """
-            
-        self.text = "%s.%s.%s" % tuple(self.cal.active_date)
+
+        dt = self.cal.active_date
+        self.text = datetime(dt[2], dt[1], dt[0]).strftime(self.format)
         self.focus = False
 
 class CalendarWidget(RelativeLayout):
     """ Basic calendar widget """
     
-    def __init__(self, as_popup=False, touch_switch=False, *args, **kwargs):
+    def __init__(self, as_popup=False, touch_switch=False, active_date=None, *args, **kwargs):
         super(CalendarWidget, self).__init__(*args, **kwargs)
-        
         self.as_popup = as_popup
         self.touch_switch = touch_switch
+        self.active_date = active_date or cal_data.today_date_list()
+
         self.prepare_data()     
         self.init_ui()
         
@@ -192,8 +206,6 @@ class CalendarWidget(RelativeLayout):
         self.month_names_eng = cal_data.get_month_names_eng()
         self.days_abrs = cal_data.get_days_abbrs()    
         
-        # Today date
-        self.active_date = cal_data.today_date_list()
         # Set title
         self.title = "%s - %s" % (self.month_names[self.active_date[1] - 1], 
                                   self.active_date[2])
@@ -304,3 +316,4 @@ class DayNumButton(DayButton):
 
 class DayNumWeekendButton(DayButton):
     pass
+
