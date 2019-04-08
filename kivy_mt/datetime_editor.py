@@ -40,7 +40,7 @@ from datetime import datetime
 
 from kivy.lang import Builder
 from kivy.factory import Factory
-from kivy.properties import ListProperty, ReferenceListProperty, ObjectProperty, BooleanProperty, StringProperty, NumericProperty
+from kivy.properties import ListProperty, ReferenceListProperty, ObjectProperty, BooleanProperty, StringProperty, NumericProperty, AliasProperty
 from kivy.core.window import Window
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
@@ -58,11 +58,33 @@ Builder.load_string("""
 #:import CalendarWidget      kivy_mt.calendar.CalendarWidget
 #:import CircularTimeWidget  kivy_mt.circulardatetimepicker.CircularTimeWidget
 
-<DatetimeEditorPopup@Popup>:
+<DatetimeEditorPopup>:
     title: "Date and time"
 
     BoxLayout:
         orientation: "vertical"
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 1
+
+            Button:
+                id: wdg_set_date_today
+                text: "Set date today"
+                size_hint_x: 1
+                on_release: root.on_set_date_today()
+
+            Button:
+                id: wdg_set_time_now
+                text: "Set time now"
+                size_hint_x: 1
+                on_release: root.on_set_time_now()
+
+            Button:
+                id: wdg_reset-time
+                text: "Reset time"
+                size_hint_x: 1
+                on_release: root.on_reset_time()
 
         BoxLayout:
             orientation: 'horizontal'
@@ -102,11 +124,35 @@ Builder.load_string("""
 
 class DatetimeEditorPopup(Popup):
 
-    dt = ObjectProperty(None, allownone=True)
+    _dt = datetime.now()
+    def _get_dt(self):
+        return self._dt
+    def _set_dt(self, dt):
+        if not isinstance(dt, datetime):
+            raise ValueError("Unable to set a non-datetime value to a datetime property.")
+        self._dt = dt
+        if len(self.ids) > 0:
+            if self.ids.wdg_date.active_date != [dt.day, dt.month, dt.year]:
+                self.ids.wdg_date.active_date = [dt.day, dt.month, dt.year]
+            if self.ids.wdg_time.time != dt.time():
+                self.ids.wdg_time.time = dt.time()
+            text = dt.strftime(self.format)
+            if self.ids.wdg_text.text != text:
+                self.ids.wdg_text.text = text
+    dt = AliasProperty(_get_dt, _set_dt)
+    """The current datetime record.
+
+    :attr:`dt` is a :class:`~kivy.properties.AliasProperty` and
+    defaults to datetime.now().
+    """
+
     format = StringProperty("%Y-%m-%d %H:%M:%S")
 
     def __init__(self, dt=None, *args, **kwargs):
         super(DatetimeEditorPopup, self).__init__(*args, **kwargs)
+
+        self.ids.wdg_date.bind(active_date=self.on_update_text_date)
+        self.ids.wdg_time.bind(time=self.on_update_text_time)
 
         self.dt = dt
         self.old_dt = dt
@@ -114,34 +160,20 @@ class DatetimeEditorPopup(Popup):
         if not self.dt:
             self.dt = datetime.now()
 
-        self.ids.wdg_date.active_date = [self.dt.day, self.dt.month, self.dt.year]
-        self.ids.wdg_time.time = self.dt.time()
-        self.ids.wdg_text.text = self.dt.strftime(self.format)
-
-        self.ids.wdg_date.bind(active_date=self.on_update_text_date)
-        self.ids.wdg_time.bind(time=self.on_update_text_time)
-
     def on_text_validate(self):
         '''Handles the case when the new text needs validation.'''
         try:
-            dt = datetime.strptime(self.ids.wdg_text.text, self.format)
-            if self.ids.wdg_date.active_date != [dt.day, dt.month, dt.year]:
-                self.ids.wdg_date.active_date = [dt.day, dt.month, dt.year]
-            if self.ids.wdg_time.time != dt.time():
-                self.ids.wdg_time.time = dt.time()
-            self.dt = dt
+            self.dt = datetime.strptime(self.ids.wdg_text.text, self.format)
         except:
             return
 
     def on_update_text_date(self, instance, value):
         '''Handles the case when the date widget has a new date.'''
         self.dt = datetime(value[2], value[1], value[0], self.dt.hour, self.dt.minute, self.dt.second)
-        self.ids.wdg_text.text = self.dt.strftime(self.format)
 
     def on_update_text_time(self, instance, value):
         '''Handles the case when the time widget has a new time.'''
         self.dt = datetime(self.dt.year, self.dt.month, self.dt.day, value.hour, value.minute, value.second)
-        self.ids.wdg_text.text = self.dt.strftime(self.format)
 
     def on_ok(self):
         '''Handles the case when the user clicks OK.'''
@@ -154,6 +186,20 @@ class DatetimeEditorPopup(Popup):
         self.dt = self.old_dt
         print("cancel",self.dt)
         self.dismiss()
+
+    def on_set_date_today(self):
+        '''Handles the case when the user wants today as the date.'''
+        today = datetime.today()
+        self.dt = datetime(today.year, today.month, today.day, self.dt.hour, self.dt.minute, self.dt.second)
+
+    def on_set_time_now(self):
+        '''Handles the case when the user wants now as the time.'''
+        now = datetime.now()
+        self.dt = datetime(self.dt.year, self.dt.month, self.dt.day, now.hour, now.minute, now.second)
+
+    def on_reset_time(self):
+        '''handles the case when the user wants reset the time but keep the date.'''
+        self.dt = datetime(self.dt.year, self.dt.month, self.dt.day, 0, 0, 0)
 
 
 # ---------- DatetimeEditor ----------
