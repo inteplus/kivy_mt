@@ -178,13 +178,11 @@ class DatetimeEditorPopup(Popup):
     def on_ok(self):
         '''Handles the case when the user clicks OK.'''
         self.on_text_validate()
-        print("ok",self.dt)
         self.dismiss()
 
     def on_cancel(self):
         '''Handles the case when the user clicks Cancel.'''
         self.dt = self.old_dt
-        print("cancel",self.dt)
         self.dismiss()
 
     def on_set_date_today(self):
