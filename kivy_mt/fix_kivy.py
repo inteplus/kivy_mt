@@ -26,13 +26,13 @@ def BuilderBase_load_file(self, filename, file_encoding='utf-8', **kwargs):
         data = fd.read()
 
         # remove bom ?
-        if PY2:
-            if data.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        if kivy.lang.builder.PY2:
+            if data.startswith((kivy.lang.builder.codecs.BOM_UTF16_LE, kivy.lang.builder.codecs.BOM_UTF16_BE)):
                 raise ValueError('Unsupported UTF16 for kv files.')
-            if data.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+            if data.startswith((kivy.lang.builder.codecs.BOM_UTF32_LE, kivy.lang.builder.codecs.BOM_UTF32_BE)):
                 raise ValueError('Unsupported UTF32 for kv files.')
-            if data.startswith(codecs.BOM_UTF8):
-                data = data[len(codecs.BOM_UTF8):]
+            if data.startswith(kivy.lang.builder.codecs.BOM_UTF8):
+                data = data[len(kivy.lang.builder.codecs.BOM_UTF8):]
 
         return self.load_string(data, **kwargs)
 
