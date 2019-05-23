@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-setup(name='kivy_mt',
+setup(name='kivy-mt',
       version='0.0.1',
       description="Extra Kivy modules written by Minh-Tri Pham",
       author=["Minh-Tri Pham"],
@@ -20,6 +20,6 @@ setup(name='kivy_mt',
         'pygame', # for kivy
       ],
       dependency_links=[
-        'git+https://github.com/inteplus/base_mt#egg=base_mt-0.0.1',
+        'git+https://github.com/inteplus/base_mt#egg=base-mt-0.0.1',
       ]
     )
