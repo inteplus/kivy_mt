@@ -14,6 +14,7 @@ setup(name='kivy_mt',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+        'base-mt', # for logging and multi-threading purposes
         'kivy',
         'kivy-garden',
         'pygame', # for kivy
