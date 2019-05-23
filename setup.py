@@ -14,9 +14,12 @@ setup(name='kivy_mt',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-        'base-mt', # for logging and multi-threading purposes
+        'base_mt', # for logging and multi-threading purposes
         'kivy',
         'kivy-garden',
         'pygame', # for kivy
+      ],
+      dependency_links=[
+        'git+https://github.com/inteplus/base_mt#egg=base_mt-0.0.1',
       ]
     )
