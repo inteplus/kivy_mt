@@ -9,7 +9,7 @@ setup(name='kivy-mt',
       #scripts=['scripts/visionml_viewer.py'],
       packages=find_packages(),
       package_data={
-        'kivy-mt': ['data/*'],
+        'kivy_mt': ['data/*'],
       },
       include_package_data=True,
       zip_safe=False,
