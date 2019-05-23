@@ -22,7 +22,7 @@ from kivy.core.window import Window
 from kivy.properties import NumericProperty, ListProperty, ReferenceListProperty, StringProperty
 from kivy.factory import Factory
 
-from kivy_mt.calendar import calendar_data as cal_data
+from kivymt.calendar import calendar_data as cal_data
 from datetime import datetime
 ###########################################################
 Builder.load_string("""

@@ -14,7 +14,7 @@ up to second level and is represented by Python's `datetime` class.
 Example::
 
     from kivy.base import runTouchApp
-    from kivy_mt.datetime_editor import DatetimeEditor
+    from kivymt.datetime_editor import DatetimeEditor
     from datetime import datetime
 
     dt_editor = DatetimeEditor(
@@ -46,17 +46,17 @@ from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
-from kivy_mt.image_btn import ImageButton
-from kivy_mt.calendar import CalendarWidget
-from kivy_mt.circulardatetimepicker import CircularTimeWidget
+from kivymt.image_btn import ImageButton
+from kivymt.calendar import CalendarWidget
+from kivymt.circulardatetimepicker import CircularTimeWidget
 
 
 # ---------- DatetimeEditorPopup ----------
 
 
 Builder.load_string("""
-#:import CalendarWidget      kivy_mt.calendar.CalendarWidget
-#:import CircularTimeWidget  kivy_mt.circulardatetimepicker.CircularTimeWidget
+#:import CalendarWidget      kivymt.calendar.CalendarWidget
+#:import CircularTimeWidget  kivymt.circulardatetimepicker.CircularTimeWidget
 
 <DatetimeEditorPopup>:
     title: "Date and time"

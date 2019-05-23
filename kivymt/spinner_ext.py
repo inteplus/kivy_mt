@@ -15,7 +15,7 @@ one extra option to insert a new value.
 Example::
 
     from kivy.base import runTouchApp
-    from kivy_mt.spinner_ext import SpinnerExt
+    from kivymt.spinner_ext import SpinnerExt
 
     spinner = SpinnerExt(
         # default value shown

@@ -17,7 +17,7 @@ Simple usage
 Import the widget with
 
 ```python
-from kivy_mt.circulardatetimepicker import CircularTimeWidget
+from kivymt.circulardatetimepicker import CircularTimeWidget
 ```
 
 then use it! That's it!
@@ -49,7 +49,7 @@ __all__ = ('CircularTimeWidget', 'CircularTimePicker')
 
 from kivy.animation import Animation
 from kivy.clock import Clock
-from kivy_mt.circularlayout import CircularLayout
+from kivymt.circularlayout import CircularLayout
 # from kivy.garden.recycleview import RecycleView
 from kivy.graphics import Line, Color, Ellipse
 from kivy.lang import Builder

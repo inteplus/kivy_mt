@@ -2,24 +2,24 @@
 
 from setuptools import setup, find_packages
 
-setup(name='kivy-mt',
+setup(name='kivymt',
       version='0.0.1',
       description="Extra Kivy modules written by Minh-Tri Pham",
       author=["Minh-Tri Pham"],
       #scripts=['scripts/visionml_viewer.py'],
       packages=find_packages(),
       package_data={
-        'kivy_mt': ['data/*'],
+        'kivymt': ['data/*'],
       },
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-        'base-mt', # for logging and multi-threading purposes
+        'basemt', # for logging and multi-threading purposes
         'kivy',
         'kivy-garden',
         'pygame', # for kivy
       ],
       dependency_links=[
-        'git+https://github.com/inteplus/base_mt#egg=base-mt-0.0.1',
+        'git+https://github.com/inteplus/basemt#egg=basemt-0.0.1',
       ]
     )
