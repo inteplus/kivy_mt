@@ -20,7 +20,7 @@ def BuilderBase_load_file(self, filename, file_encoding='utf-8', **kwargs):
     '''
     filename = kivy.lang.builder.resource_find(filename) or filename
     if __debug__:
-        trace('Lang: load file %s' % filename)
+        kivy.lang.builder.trace('Lang: load file %s' % filename)
     with open(filename, 'r', encoding=file_encoding) as fd:
         kwargs['filename'] = filename
         data = fd.read()
