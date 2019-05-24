@@ -32,6 +32,6 @@ setup(name='kivymt',
         'pygame', # for kivy
       ],
       dependency_links=[
-        'git+https://github.com/inteplus/basemt#egg=basemt-0.0.1',
+        'https://github.com/inteplus/basemt/archive/0.0.1.tar.gz',
       ]
     )
