@@ -32,7 +32,4 @@ setup(
         'kivy-garden',
         'pygame', # for kivy
     ],
-    dependency_links=[
-        'https://github.com/inteplus/basemt/tarball/master#egg=basemt-0.0.2',
-    ]
 )
