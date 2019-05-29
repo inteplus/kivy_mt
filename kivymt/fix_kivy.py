@@ -1,11 +1,26 @@
 '''Monkeypatching kivy for some minor bugs'''
 
 
+import os
+import os.path as op
+import sys
+
+
+# ----- kivy_deps.* -----
+
+
+if os.name == 'nt': # Windows
+    _root = sys.prefix
+    for x in ['sdl2', 'angle', 'glew', 'gstreamer']:
+        dirpath = op.join(_root, 'share', x, 'bin')
+        if op.isdir(dirpath):
+            os.environ['PATH'] = dirpath + os.pathsep + os.environ['PATH']
+
+
 # ----- kivy.lang.builder.BuilderBase.load_file -----
 
 
 import kivy.lang.builder
-import os
 
 
 if os.name == 'nt': # Windows
